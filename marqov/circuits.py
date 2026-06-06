@@ -293,6 +293,20 @@ class Circuit:
         circuit._qf = qf.braket_to_circuit(braket_circuit)
         return circuit
 
+    @classmethod
+    def from_pyquil(cls, program: pyquil.Program) -> "Circuit":
+        """Import from existing PyQuil program.
+
+        Args:
+            pyquil_program: PyQuil Program to import.
+
+        Returns:
+            New Circuit instance.
+        """  
+        circuit = cls()
+        circuit._qf = qf.pyquil_to_circuit(program)
+        return circuit
+        
     # Qiskit gate name -> Circuit fluent method mapping.
     # Used by from_qiskit() to convert decomposed Qiskit circuits.
     _QISKIT_GATE_MAP: dict[str, str] = {
@@ -512,6 +526,7 @@ class Circuit:
                 gate_type = type(op.gate).__name__ if op.gate else type(op).__name__
                 try:
                     import sentry_sdk
+
                     sentry_sdk.capture_message(
                         f"Circuit.from_cirq(): unmappable gate '{gate_type}'",
                         level="warning",
@@ -630,6 +645,7 @@ class Circuit:
                 # Decomposition failed — log to Sentry and raise.
                 try:
                     import sentry_sdk
+
                     sentry_sdk.capture_message(
                         f"Circuit.from_pennylane(): unmappable gate '{name}'",
                         level="warning",
@@ -695,11 +711,13 @@ class Circuit:
             gate_name = op.name
             qubits = list(op.qubits)
             params = list(op.params) if hasattr(op, "params") and op.params else []
-            gates.append({
-                "gate": gate_name,
-                "qubits": qubits,
-                "params": params,
-            })
+            gates.append(
+                {
+                    "gate": gate_name,
+                    "qubits": qubits,
+                    "params": params,
+                }
+            )
         return {"gates": gates}
 
     @classmethod

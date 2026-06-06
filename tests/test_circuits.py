@@ -111,6 +111,27 @@ class TestBackendConversion:
         imported = Circuit.from_braket(braket_circuit)
         assert imported.num_qubits == original.num_qubits
 
+class TestFromPyquil:
+    """Tests for Circuit.from_pyquil()."""
+
+    def test_from_pyquil_roundtrip(self) -> None:
+        """Import from PyQuil preserves circuit structure."""
+        original = Circuit().h(0).cnot(0, 1)
+        pyquil_program = original.to_pyquil()
+        imported = Circuit.from_pyquil(pyquil_program)
+        assert imported.num_qubits == original.num_qubits
+    
+    def test_from_pyquil_swap_roundtrip(self) -> None:
+        """Import from PyQuil preserves swap gate."""
+        import numpy as np
+
+        original = Circuit().swap(0, 1)
+        imported = Circuit.from_pyquil(original.to_pyquil())
+
+        orig_amps = original.simulate().tensor.flatten()
+        imported_amps = imported.simulate().tensor.flatten()
+        assert np.allclose(np.abs(orig_amps), np.abs(imported_amps))
+
 
 class TestFromQiskit:
     """Tests for Circuit.from_qiskit()."""
