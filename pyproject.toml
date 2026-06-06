@@ -48,7 +48,7 @@ pennylane = [
     "pennylane>=0.35.0",
 ]
 pyquil = [
-    "pyquil>=4.0.0",
+    "pyquil>=4.0.0,<4.17",
 ]
 openqasm = [
     "qiskit>=1.0.0",
@@ -64,6 +64,7 @@ all = [
     "qiskit-qasm3-import>=0.5.0",
     "cirq-core>=1.0.0",
     "pennylane>=0.35.0",
+    "pyquil>=4.0.0,<4.17",
 ]
 
 [project.scripts]
