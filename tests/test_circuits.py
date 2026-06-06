@@ -116,10 +116,15 @@ class TestFromPyquil:
 
     def test_from_pyquil_roundtrip(self) -> None:
         """Import from PyQuil preserves circuit structure."""
-        original = Circuit().h(0).cnot(0, 1)
+        import numpy as np
+
+        original = bell_state()
         pyquil_program = original.to_pyquil()
         imported = Circuit.from_pyquil(pyquil_program)
-        assert imported.num_qubits == original.num_qubits
+
+        orig_amps = original.simulate().tensor.flatten()
+        imported_amps = imported.simulate().tensor.flatten()
+        assert np.allclose(np.abs(orig_amps), np.abs(imported_amps))
     
     def test_from_pyquil_swap_roundtrip(self) -> None:
         """Import from PyQuil preserves swap gate."""

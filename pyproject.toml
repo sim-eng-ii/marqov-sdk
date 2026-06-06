@@ -48,7 +48,10 @@ pennylane = [
     "pennylane>=0.35.0",
 ]
 pyquil = [
-    "pyquil>=4.0.0,<4.17",
+    # pyquil 4.x requires Python <3.13 and quil <0.18 (see CONTRIBUTING.md setup)
+    "pyquil>=4.16,<4.17",
+    "quil>=0.15.3,<0.18",
+    "qcs-sdk-python>=0.20.1,<0.22",
 ]
 openqasm = [
     "qiskit>=1.0.0",
@@ -64,7 +67,9 @@ all = [
     "qiskit-qasm3-import>=0.5.0",
     "cirq-core>=1.0.0",
     "pennylane>=0.35.0",
-    "pyquil>=4.0.0,<4.17",
+    "pyquil>=4.16,<4.17",
+    "quil>=0.15.3,<0.18",
+    "qcs-sdk-python>=0.20.1,<0.22",
 ]
 
 [project.scripts]

@@ -293,20 +293,89 @@ class Circuit:
         circuit._qf = qf.braket_to_circuit(braket_circuit)
         return circuit
 
+    # PyQuil gate name -> Circuit fluent method mapping.
+    # Used by from_pyquil() to convert decomposed PyQuil circuits.
+    _PYQUIL_GATE_MAP: dict[str, str] = {
+        "H": "h",
+        "X": "x",
+        "Y": "y",
+        "Z": "z",
+        "S": "s",
+        "T": "t",
+        "RX": "rx",
+        "RY": "ry",
+        "RZ": "rz",
+        "CNOT": "cnot",
+        "CZ": "cz",
+        "SWAP": "swap",
+    }
+
+    # Gates that take rotation angle parameters.
+    _PYQUIL_ROTATION_GATES: set[str] = {"RX", "RY", "RZ"}
+
     @classmethod
     def from_pyquil(cls, program: pyquil.Program) -> "Circuit":
         """Import from existing PyQuil program.
+
+        Requires PyQuil to be installed (``pip install marqov[pyquil]``).
 
         Args:
             pyquil_program: PyQuil Program to import.
 
         Returns:
             New Circuit instance.
-        """  
+
+        Raises:
+            ImportError: If PyQuil is not installed.
+            TypeError: If the input is not a PyQuil Program.
+            NotImplementedError: If a gate cannot be mapped after decomposition.
+        """
+
+        try:
+            from pyquil import Program
+            from pyquil.quilbase import Gate, Declare, Halt, Measurement, Pragma
+
+        except ImportError:
+            raise ImportError(
+                "PyQuil is required for Circuit.from_pyquil(). "
+                "Install with: pip install marqov[pyquil]"
+            )
+
+        if not isinstance(program, Program):
+            raise TypeError(
+                f"Expected a PyQuil Program, got {type(program).__name__}"
+            )
+
         circuit = cls()
-        circuit._qf = qf.pyquil_to_circuit(program)
+
+        for instruction in program.instructions:
+
+            if isinstance(instruction, (Declare, Halt, Measurement, Pragma)):
+                continue
+            if not isinstance(instruction, Gate):
+                raise NotImplementedError(
+                    f"Unsupported instruction '{type(instruction).__name__}' in PyQuil program. "
+                )
+
+            name = instruction.name
+
+            if name not in cls._PYQUIL_GATE_MAP:
+                raise NotImplementedError(
+                    f"Unsupported gate '{name}' in PyQuil program. "
+                    f"Supported gates: {', '.join(sorted(cls._PYQUIL_GATE_MAP))}"
+                )
+
+            qubits = [q.index for q in instruction.qubits]
+            method_name = cls._PYQUIL_GATE_MAP[name]
+
+            if name in cls._PYQUIL_ROTATION_GATES:
+                getattr(circuit, method_name)(float(instruction.params[0]), qubits[0])
+            elif len(qubits) == 1:
+                getattr(circuit, method_name)(qubits[0])
+            else:
+                getattr(circuit, method_name)(qubits[0], qubits[1])
         return circuit
-        
+
     # Qiskit gate name -> Circuit fluent method mapping.
     # Used by from_qiskit() to convert decomposed Qiskit circuits.
     _QISKIT_GATE_MAP: dict[str, str] = {
