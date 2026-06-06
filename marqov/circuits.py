@@ -265,7 +265,7 @@ class Circuit:
             if name not in self._QISKIT_GATE_MAP:
                 raise NotImplementedError(
                     f"Unsupported gate '{name}' after decomposition. "
-                    f"Supported gates: {', '.join(sorted(cls._QISKIT_GATE_MAP))}"
+                    f"Supported gates: {', '.join(sorted(self._QISKIT_GATE_MAP))}"
                 )
 
         return qiskit_to_tk(qiskit_circuit)
