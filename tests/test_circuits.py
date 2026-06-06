@@ -87,7 +87,7 @@ class TestToPytket:
         from pytket import Circuit as PytketCircuit
         from pytket.circuit import OpType
 
-        expected = TkCircuit(2)
+        expected = PytketCircuit(2)
         expected.H(0)
         expected.add_gate(OpType.CX, [0, 1])
 
