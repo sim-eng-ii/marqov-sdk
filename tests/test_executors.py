@@ -655,6 +655,8 @@ class TestQuantinuumExecutorGetStatus:
         executor = QuantinuumExecutor(config)
         with patch.object(executor, 'get_device_status', new_callable=AsyncMock, return_value="offline"):
             status = await executor.get_status()
+            assert status.status == "offline"
+            assert status.queue_depth is None
 class TestAzureExecutorGetStatus:
     """Tests for AzureQuantumExecutor.get_status()."""
 

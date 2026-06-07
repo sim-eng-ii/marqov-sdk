@@ -423,6 +423,7 @@ class TestFactoryIntegration:
             "simulator": "state-vector",
             "group": "test-group",
             "label": "test-label",
+            "auth_provider": None,
         }
         executor = ExecutorFactory.create_executor("h2-1", config)
         assert isinstance(executor, QuantinuumExecutor)
