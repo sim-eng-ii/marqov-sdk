@@ -99,7 +99,7 @@ asyncio.run(main())
 | Azure Quantum | ✅ Available |
 | IonQ Direct | [🔧 Open issue #1](https://github.com/marqov-dev/marqov-sdk/issues/1) |
 | Rigetti QCS | [🔧 Open issue #2](https://github.com/marqov-dev/marqov-sdk/issues/2) |
-| Quantinuum | [🔧 Open issue #6](https://github.com/marqov-dev/marqov-sdk/issues/6) |
+| Quantinuum | ✅ Available |
 
 ## Circuit Interop
 
