@@ -1,7 +1,7 @@
 """Executor factory for multi-cloud quantum backend support.
 
 This module provides a factory pattern for creating executors based on provider.
-Supports AWS Braket, IBM Quantum, Azure Quantum, and IonQ Direct API.
+Supports AWS Braket, Quantinuum, IBM Quantum, Azure Quantum, and IonQ Direct API.
 
 Example:
     >>> backend_config = {
@@ -124,7 +124,7 @@ class ExecutorFactory:
 
         raise ValueError(
             f"Unsupported provider: {provider}. "
-            f"Supported providers: AWS Braket, IBM Quantum, Azure Quantum, Quantum Brilliance, Local. "
+            f"Supported providers: AWS Braket, Quantinuum, IBM Quantum, Azure Quantum, Quantum Brilliance, Local. "
             f"Coming soon: IonQ Direct."
         )
 
