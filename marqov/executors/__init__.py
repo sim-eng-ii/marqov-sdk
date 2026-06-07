@@ -6,6 +6,7 @@ Available executors:
 - LocalExecutor: QuantumFlow simulator (no cloud required)
 - BraketExecutor: AWS Braket (simulators and QPUs)
 - AzureQuantumExecutor: Azure Quantum (Quantinuum, PASQAL, IonQ, Rigetti)
+- QuantinuumExecutor: Quantinuum devices and emulators (via pytket-quantinuum)
 - IBMExecutor: IBM Quantum (Heron r2, Eagle, etc. via Qiskit Runtime)
 
 Example:
@@ -23,6 +24,7 @@ from marqov.executors.braket import BraketExecutor, BraketExecutorConfig
 from marqov.executors.factory import ExecutorFactory
 from marqov.executors.ibm import IBMExecutor, IBMExecutorConfig
 from marqov.executors.local import LocalExecutor
+from marqov.executors.quantinuum import QuantinuumExecutor, QuantinuumExecutorConfig
 from marqov.simulation.executor import SimulationExecutor
 
 __all__ = [
@@ -37,5 +39,7 @@ __all__ = [
     "IBMExecutor",
     "IBMExecutorConfig",
     "LocalExecutor",
+    "QuantinuumExecutor",
+    "QuantinuumExecutorConfig",
     "SimulationExecutor",
 ]
