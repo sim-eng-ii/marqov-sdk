@@ -424,7 +424,10 @@ class TestFactoryIntegration:
             "group": "test-group",
             "label": "test-label",
             "auth_provider": None,
+            "api_handler": None,
+            "compilation_config": None,
         }
+
         executor = ExecutorFactory.create_executor("h2-1", config)
         assert isinstance(executor, QuantinuumExecutor)
 

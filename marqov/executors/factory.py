@@ -177,12 +177,6 @@ class ExecutorFactory:
         """
         required_fields = [
             "device_name",
-            "simulator",
-            "group",
-            "label",
-            "auth_provider",
-            "api_handler",
-            "compilation_config",
         ]
         missing_fields = [f for f in required_fields if f not in backend_config]
         if missing_fields:
@@ -190,12 +184,12 @@ class ExecutorFactory:
                 f"QuantinuumExecutor config missing required fields for {backend_slug}: "
                 f"{', '.join(missing_fields)}"
             )
-            
+
         config = QuantinuumExecutorConfig(
             device_name=backend_config["device_name"],
-            simulator=backend_config["simulator"],
-            group=backend_config["group"],
-            label=backend_config["label"],
+            simulator=backend_config.get("simulator", "state-vector"),
+            group=backend_config.get("group"),
+            label=backend_config.get("label", "job"),
             provider=backend_config.get("auth_provider"),
             machine_debug=backend_config.get("machine_debug", False),
             api_handler=backend_config.get("api_handler"),
