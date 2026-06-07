@@ -94,6 +94,7 @@ class QuantinuumExecutor(BaseExecutor):
         from pytket.extensions.quantinuum.backends.api_wrappers import QuantinuumAPI
         
         if self._backend is None:
+            api_handler = self._api_handler or QuantinuumAPI()
             self._backend = QuantinuumBackend(
                 device_name=self.config.device_name,
                 label=self.config.label,
