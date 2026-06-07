@@ -102,7 +102,7 @@ class QuantinuumExecutor(BaseExecutor):
                 group=self.config.group,
                 provider=self.config.provider,
                 machine_debug=self.config.machine_debug,
-                api_handler=self._api_handler,
+                api_handler=api_handler,
                 compilation_config=self.config.compilation_config,
                 **self.config.options,
             )
