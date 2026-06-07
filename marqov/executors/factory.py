@@ -279,6 +279,7 @@ class ExecutorFactory:
             "Azure Quantum",
             "Quantum Brilliance",
             "Local",
+            "Quantinuum",
             # "IonQ Direct",     # Coming soon
         ]
 
