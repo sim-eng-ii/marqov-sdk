@@ -12,18 +12,16 @@ from functools import partial
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
-from pytket.extensions.quantinuum import QuantinuumBackend
-from pytket.extensions.quantinuum.backends.quantinuum import (
-    QuantinuumBackendCompilationConfig,
-)
-from pytket.extensions.quantinuum.backends.api_wrappers import QuantinuumAPI
-from pytket import Circuit as TketCircuit
-
-
 from marqov.executors.base import BaseExecutor, DeviceStatus, ExecutionResult
 
 if TYPE_CHECKING:
     from marqov.circuits import Circuit
+    from pytket import Circuit as TketCircuit
+    from pytket.extensions.quantinuum.backends.api_wrappers import QuantinuumAPI
+    from pytket.extensions.quantinuum import QuantinuumBackend
+    from pytket.extensions.quantinuum.backends.quantinuum import (
+        QuantinuumBackendCompilationConfig,
+    )
 
 
 @dataclass
@@ -82,7 +80,7 @@ class QuantinuumExecutor(BaseExecutor):
             config: Executur configuration including device settings.
         """
         self.config = config
-        self._api_handler = self.config.api_handler or QuantinuumAPI()
+        self._api_handler = self.config.api_handler 
         self._backend: QuantinuumBackend | None = None
         self._current_job_id: str | None = None
 
@@ -92,7 +90,11 @@ class QuantinuumExecutor(BaseExecutor):
         Returns:
             QuantinuumBackend instance.
         """
+        from pytket.extensions.quantinuum import QuantinuumBackend
+        from pytket.extensions.quantinuum.backends.api_wrappers import QuantinuumAPI
+        
         if self._backend is None:
+            api_handler = self._api_handler or QuantinuumAPI()
             self._backend = QuantinuumBackend(
                 device_name=self.config.device_name,
                 label=self.config.label,
@@ -100,7 +102,7 @@ class QuantinuumExecutor(BaseExecutor):
                 group=self.config.group,
                 provider=self.config.provider,
                 machine_debug=self.config.machine_debug,
-                api_handler=self._api_handler,
+                api_handler=api_handler,
                 compilation_config=self.config.compilation_config,
                 **self.config.options,
             )
@@ -127,6 +129,8 @@ class QuantinuumExecutor(BaseExecutor):
         compiled = backend.get_compiled_circuit(
             tket_circuit, optimisation_level=self.config.optimisation_level
         )
+        from pytket.extensions.quantinuum import QuantinuumBackend
+
         handle = backend.process_circuit(compiled, n_shots=shots, **kwargs)
         job_id = QuantinuumBackend.get_jobid(handle)
         get_result_kwargs: dict[str, Any] = {}
@@ -187,10 +191,12 @@ class QuantinuumExecutor(BaseExecutor):
 
     def _get_device_state_sync(self) -> str:
         """Get raw device state from Quantinuum API."""
-        return QuantinuumBackend.device_state(
-            self.config.device_name,
-            api_handler=self._api_handler,
-        )
+        from pytket.extensions.quantinuum import QuantinuumBackend
+        from pytket.extensions.quantinuum.backends.api_wrappers import QuantinuumAPI
+
+        api_handler = self._api_handler or QuantinuumAPI()
+        return QuantinuumBackend.device_state(self.config.device_name, api_handler=api_handler)
+
 
     async def get_device_status(self) -> str:
         """Get current device status.
@@ -198,6 +204,7 @@ class QuantinuumExecutor(BaseExecutor):
         Returns:
             Device status string (e.g., "online", "offline").
         """
+        
         loop = asyncio.get_running_loop()
         return await loop.run_in_executor(None, self._get_device_state_sync)
 
