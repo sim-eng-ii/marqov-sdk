@@ -252,7 +252,7 @@ class ExecutorFactory:
         """
         backend = backend_config.get("backend", backend_slug)
         config = IonQExecutorConfig(
-            backend=backend
+            backend=backend,
             api_key=backend_config.get("api_key"),
             project_id=backend_config.get("project_id"),
             job_name=backend_config.get("job_name"),
