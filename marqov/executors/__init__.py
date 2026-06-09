@@ -6,6 +6,7 @@ Available executors:
 - LocalExecutor: QuantumFlow simulator (no cloud required)
 - BraketExecutor: AWS Braket (simulators and QPUs)
 - AzureQuantumExecutor: Azure Quantum (Quantinuum, PASQAL, IonQ, Rigetti)
+- IonQExecutor: IonQ devices and emulators (via IonQ Direct API)
 - IBMExecutor: IBM Quantum (Heron r2, Eagle, etc. via Qiskit Runtime)
 
 Example:
@@ -37,5 +38,7 @@ __all__ = [
     "IBMExecutor",
     "IBMExecutorConfig",
     "LocalExecutor",
+    "IonQExecutor",
+    "IonQExecutorConfig",
     "SimulationExecutor",
 ]
