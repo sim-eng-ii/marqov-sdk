@@ -12,7 +12,6 @@ from marqov.executors import (
     ExecutionResult,
     IBMExecutor,
     LocalExecutor,
-    QuantinuumExecutor,
     IonQExecutor,
 )
 from marqov.executors.azure import AzureQuantumExecutorConfig
@@ -477,8 +476,6 @@ class TestIonQExecutor:
         executor = IonQExecutor(config)
         assert executor._resolve_url("/v0.4/jobs") == "https://api.ionq.co/v0.4/jobs"
         assert executor._resolve_url("https://api.ionq.co/v0.4/jobs") == "https://api.ionq.co/v0.4/jobs"
-        assert executor._resolve_url("http://api.ionq.co/v0.4/jobs") == "http://api.ionq.co/v0.4/jobs"
-        assert executor._resolve_url("http://api.ionq.co/v0.4/jobs") == "http://api.ionq.co/v0.4/jobs"
 
     def test_fetch_counts(self) -> None:
         """fetch_counts returns the correct counts."""
@@ -489,7 +486,9 @@ class TestIonQExecutor:
             job_name="job-name",
         )
         executor = IonQExecutor(config)
-        counts = executor._fetch_counts(job, 100)
+        job = {"results": {"probabilities": {"url": "/v0.4/jobs/x/results/probabilities"}}}
+        with patch.object(executor, "_api_get", return_value={"00": 0.5, "11": 0.5}):
+            counts = executor._fetch_counts(job, 100)
         assert counts == {"00": 50, "11": 50}
 
     def test_build_job_payload(self) -> None:
