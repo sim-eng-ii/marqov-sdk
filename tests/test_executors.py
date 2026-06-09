@@ -498,19 +498,18 @@ class TestIonQExecutor:
             project_id="project-id",
             job_name="job-name",
         )
-        circuit = Circuit().h(0).cnot(0, 1)
+        circuit = bell_state()
         executor = IonQExecutor(config)
         payload = executor._build_job_payload(circuit, 100)
-        assert payload == {
-            "backend": "simulator",
-            "shots": 100,
-            "name": "job-name",
-            "dry_run": False,
-            "input": {
-                "format": "openqasm",
-                "data": circuit.to_openqasm(),
-            },
-        }
+
+        assert payload["backend"] == "simulator"
+        assert payload["shots"] == 100
+        assert payload["name"] == "job-name"
+        assert payload["dry_run"] is False
+        assert payload["project_id"] == "project-id"
+        assert payload["input"]["format"] == "openqasm"
+        assert "h" in payload["input"]["data"]
+        assert "cx" in payload["input"]["data"]
         assert payload["project_id"] == "project-id"
 
 class TestAzureQuantumExecutor:

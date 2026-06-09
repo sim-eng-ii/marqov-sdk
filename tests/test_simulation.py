@@ -11,6 +11,7 @@ from marqov.simulation.backends import SIMULATION_BACKENDS
 from marqov.simulation.circuit_converter import convert_counts, count_qubits, ensure_measurements
 from marqov.simulation.config import SimulationConfig
 from marqov.simulation.executor import SimulationExecutor, _validate_qubit_limit
+from marqov.executors.ionq import IonQExecutor
 
 
 class TestCountQubits:
@@ -417,3 +418,30 @@ class TestFactoryIntegration:
     def test_simulation_in_supported_providers(self) -> None:
         """Quantum Brilliance listed as a supported provider."""
         assert "Quantum Brilliance" in ExecutorFactory.get_supported_providers()
+
+    def test_create_ionq_executor(self) -> None:
+        """Factory creates IonQExecutor for IonQ Direct provider."""
+        config = {
+            "provider": "IonQ Direct",
+            "slug": "simulator",
+            "backend": "simulator",
+            "api_key": "test-key",
+            "project_id": "test-project",
+            "job_name": "test-job",
+        }
+        executor = ExecutorFactory.create_executor("simulator", config)
+        assert isinstance(executor, IonQExecutor)
+        assert executor.config.backend == "simulator"
+        assert executor.config.api_key == "test-key"
+        assert executor.config.project_id == "test-project"
+        assert executor.config.job_name == "test-job"
+
+    def test_ionq_backend_slug_fallback(self) -> None:
+        """Factory uses backend_slug when backend not in config."""
+        config = {"provider": "IonQ Direct", "slug": "simulator"}
+        executor = ExecutorFactory.create_executor("simulator", config)
+        assert executor.config.backend == "simulator"
+
+    def test_ionq_in_supported_providers(self) -> None:
+        """IonQ Direct listed as a supported provider."""
+        assert "IonQ Direct" in ExecutorFactory.get_supported_providers()
