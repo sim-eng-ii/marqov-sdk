@@ -18,7 +18,6 @@ from marqov.executors.azure import AzureQuantumExecutorConfig
 from marqov.executors.braket import BraketExecutorConfig, _extract_region_from_arn
 from marqov.executors.ibm import IBMExecutorConfig
 from marqov.executors.local import LocalExecutorConfig
-from marqov.executors.quantinuum import QuantinuumExecutorConfig
 from marqov.executors.ionq import IonQExecutorConfig
 
 
@@ -499,6 +498,7 @@ class TestIonQExecutor:
             project_id="project-id",
             job_name="job-name",
         )
+        circuit = Circuit().h(0).cnot(0, 1)
         executor = IonQExecutor(config)
         payload = executor._build_job_payload(circuit, 100)
         assert payload == {
@@ -506,7 +506,12 @@ class TestIonQExecutor:
             "shots": 100,
             "name": "job-name",
             "dry_run": False,
+            "input": {
+                "format": "openqasm",
+                "data": circuit.to_openqasm(),
+            },
         }
+        assert payload["project_id"] == "project-id"
 
 class TestAzureQuantumExecutor:
     """Tests for AzureQuantumExecutor."""
