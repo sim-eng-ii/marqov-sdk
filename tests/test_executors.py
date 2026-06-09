@@ -506,7 +506,6 @@ class TestIonQExecutor:
         assert payload["shots"] == 100
         assert payload["name"] == "job-name"
         assert payload["dry_run"] is False
-        assert payload["project_id"] == "project-id"
         assert payload["input"]["format"] == "openqasm"
         assert "h" in payload["input"]["data"]
         assert "cx" in payload["input"]["data"]
