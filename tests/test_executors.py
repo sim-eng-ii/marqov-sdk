@@ -12,11 +12,15 @@ from marqov.executors import (
     ExecutionResult,
     IBMExecutor,
     LocalExecutor,
+    QuantinuumExecutor,
+    IonQExecutor,
 )
 from marqov.executors.azure import AzureQuantumExecutorConfig
 from marqov.executors.braket import BraketExecutorConfig, _extract_region_from_arn
 from marqov.executors.ibm import IBMExecutorConfig
 from marqov.executors.local import LocalExecutorConfig
+from marqov.executors.quantinuum import QuantinuumExecutorConfig
+from marqov.executors.ionq import IonQExecutorConfig
 
 
 class TestExecutionResult:
@@ -152,6 +156,34 @@ class TestBraketExecutorConfig:
         assert config.poll_interval_seconds == 1.0
         assert config.timeout_seconds is None
 
+class TestIonQExecutorConfig:
+    """Tests for IonQExecutorConfig."""
+    def test_config_required_fields(self) -> None:
+        """Config requires backend, poll_interval_seconds, timeout_seconds, api_version, dry_run."""
+        config = IonQExecutorConfig(
+            backend="simulator",
+            poll_interval_seconds=2.0,
+            timeout_seconds=300.0,
+            api_version="v0.4",
+            dry_run=False,
+        )
+        assert config.backend == "simulator"
+        assert config.poll_interval_seconds == 2.0
+        assert config.timeout_seconds == 300.0
+        assert config.api_version == "v0.4"
+        assert config.dry_run is False
+    
+    def test_config_defaults(self) -> None:
+        """Config has sensible defaults."""
+        config = IonQExecutorConfig(
+            backend="simulator",
+        )
+        assert config.backend == "simulator"
+        assert config.poll_interval_seconds == 2.0
+        assert config.timeout_seconds is None
+        assert config.api_version == "v0.4"
+        assert config.dry_run is False
+        assert config.api_key is None
 
 class TestRegionExtraction:
     """Tests for ARN region extraction."""
@@ -359,6 +391,88 @@ class TestBraketExecutor:
                         with pytest.raises(ValueError, match="non-native gates"):
                             await executor.execute(circuit, shots=100, verbatim=True)
 
+class TestQuantinuumExecutor:
+    """Tests for QuantinuumExecutor."""
+
+    def test_config_validation(self) -> None:
+        """Config validates required fields."""
+        config = QuantinuumExecutorConfig(
+            device_name="H2-1",
+            simulator="state-vector",
+            group="test-group",
+            label="test-label",
+        )
+        assert config.device_name == "H2-1"
+        assert config.simulator == "state-vector"
+        assert config.group == "test-group"
+        assert config.label == "test-label"
+        assert config.provider is None
+        assert config.api_handler is None
+        assert config.compilation_config is None
+        assert config.options == {}
+        assert config.poll_interval_seconds == 2.0
+        assert config.timeout_seconds == 300.0
+        assert config.optimisation_level == 2
+
+
+
+    def test_executor_creation(self) -> None:
+        """Executor can be created with valid config."""
+        config = QuantinuumExecutorConfig(
+            device_name="H2-1",
+            simulator="state-vector",
+            group="test-group",
+            label="test-label",
+        )
+        executor = QuantinuumExecutor(config)
+        assert executor.config == config
+        assert executor.name == "QuantinuumExecutor"
+
+class TestIonQExecutor:
+    """Tests for IonQExecutor."""
+    def test_config_validation(self) -> None:
+        """Config validates required fields."""
+        config = IonQExecutorConfig(
+            backend="simulator",
+            api_key="api-key",
+            project_id="project-id",
+            job_name="job-name",
+        )
+        assert config.backend == "simulator"
+        assert config.api_key == "api-key"
+        assert config.project_id == "project-id"
+        assert config.job_name == "job-name"
+        assert config.poll_interval_seconds == 2.0
+        assert config.timeout_seconds == None
+        assert config.api_version == "v0.4"
+        assert config.dry_run is False
+    
+    def test_config_optional_fields(self) -> None:
+        """Config validates optional fields."""
+        config = IonQExecutorConfig(
+            backend="simulator",
+            api_key="api-key",
+            project_id="project-id",
+            job_name="job-name",
+        )
+        assert config.api_version == "v0.4"
+        assert config.api_key == "api-key"
+        assert config.project_id == "project-id"
+        assert config.job_name == "job-name"
+
+
+    def test_executor_creation(self) -> None:
+        """Executor can be created with valid config."""
+ 
+        config = IonQExecutorConfig(
+            backend="simulator",
+            api_key="api-key",
+            project_id="project-id",
+            job_name="job-name",
+        )
+        executor = IonQExecutor(config)
+        assert executor.config == config
+        assert executor.name == "IonQExecutor"
 
 class TestAzureQuantumExecutor:
     """Tests for AzureQuantumExecutor."""
@@ -599,7 +713,28 @@ class TestBraketExecutorGetStatus:
             assert status.status == "maintenance"
             assert status.queue_depth is None
 
+class TestQuantinuumExecutorGetStatus:
+    """Tests for QuantinuumExecutor.get_status()."""
 
+    @pytest.mark.asyncio
+    async def test_online_status(self) -> None:
+        config = QuantinuumExecutorConfig(device_name="H2-1", simulator="state-vector", group="test-group", label="test-label")
+        executor = QuantinuumExecutor(config)
+        with patch.object(executor, 'get_device_status', new_callable=AsyncMock, return_value="online"):
+            status = await executor.get_status()
+            assert status.status == "online"
+            assert status.queue_depth is None
+
+    @pytest.mark.asyncio
+    async def test_offline_status(self) -> None:
+        config = QuantinuumExecutorConfig(device_name="H2-1", simulator="state-vector", group="test-group", label="test-label")
+        executor = QuantinuumExecutor(config)
+        with patch.object(executor, 'get_device_status', new_callable=AsyncMock, return_value="offline"):
+            status = await executor.get_status()
+            assert status.status == "offline"
+            assert status.queue_depth is None
+
+    
 class TestAzureExecutorGetStatus:
     """Tests for AzureQuantumExecutor.get_status()."""
 
