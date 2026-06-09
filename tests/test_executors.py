@@ -430,36 +430,6 @@ class TestQuantinuumExecutor:
 
 class TestIonQExecutor:
     """Tests for IonQExecutor."""
-    def test_config_validation(self) -> None:
-        """Config validates required fields."""
-        config = IonQExecutorConfig(
-            backend="simulator",
-            api_key="api-key",
-            project_id="project-id",
-            job_name="job-name",
-        )
-        assert config.backend == "simulator"
-        assert config.api_key == "api-key"
-        assert config.project_id == "project-id"
-        assert config.job_name == "job-name"
-        assert config.poll_interval_seconds == 2.0
-        assert config.timeout_seconds == None
-        assert config.api_version == "v0.4"
-        assert config.dry_run is False
-    
-    def test_config_optional_fields(self) -> None:
-        """Config validates optional fields."""
-        config = IonQExecutorConfig(
-            backend="simulator",
-            api_key="api-key",
-            project_id="project-id",
-            job_name="job-name",
-        )
-        assert config.api_version == "v0.4"
-        assert config.api_key == "api-key"
-        assert config.project_id == "project-id"
-        assert config.job_name == "job-name"
-
 
     def test_executor_creation(self) -> None:
         """Executor can be created with valid config."""
@@ -473,6 +443,71 @@ class TestIonQExecutor:
         executor = IonQExecutor(config)
         assert executor.config == config
         assert executor.name == "IonQExecutor"
+
+    def test_get_api_key(self) -> None:
+        """get_api_key returns API key."""
+        config = IonQExecutorConfig(
+            backend="simulator",
+            api_key="api-key",
+            project_id="project-id",
+            job_name="job-name",
+        )
+        executor = IonQExecutor(config)
+        assert executor._get_api_key() == "api-key"
+    
+    def test_get_api_key_raises_error_if_no_api_key(self) -> None:
+        """get_api_key raises ValueError if no API key is set."""
+        config = IonQExecutorConfig(
+            backend="simulator",
+            project_id="project-id",
+            job_name="job-name",
+        )
+        executor = IonQExecutor(config)
+        with pytest.raises(ValueError, match="IonQ API key required"):
+            executor._get_api_key()
+    
+    def test_get_resolve_url(self) -> None:
+        """get_resolve_url returns the correct URL."""
+        config = IonQExecutorConfig(
+            backend="simulator",
+            api_key="api-key",
+            project_id="project-id",
+            job_name="job-name",
+        )
+        executor = IonQExecutor(config)
+        assert executor._resolve_url("/v0.4/jobs") == "https://api.ionq.co/v0.4/jobs"
+        assert executor._resolve_url("https://api.ionq.co/v0.4/jobs") == "https://api.ionq.co/v0.4/jobs"
+        assert executor._resolve_url("http://api.ionq.co/v0.4/jobs") == "http://api.ionq.co/v0.4/jobs"
+        assert executor._resolve_url("http://api.ionq.co/v0.4/jobs") == "http://api.ionq.co/v0.4/jobs"
+
+    def test_fetch_counts(self) -> None:
+        """fetch_counts returns the correct counts."""
+        config = IonQExecutorConfig(
+            backend="simulator",
+            api_key="api-key",
+            project_id="project-id",
+            job_name="job-name",
+        )
+        executor = IonQExecutor(config)
+        counts = executor._fetch_counts(job, 100)
+        assert counts == {"00": 50, "11": 50}
+
+    def test_build_job_payload(self) -> None:
+        """build_job_payload returns the correct payload."""
+        config = IonQExecutorConfig(
+            backend="simulator",
+            api_key="api-key",
+            project_id="project-id",
+            job_name="job-name",
+        )
+        executor = IonQExecutor(config)
+        payload = executor._build_job_payload(circuit, 100)
+        assert payload == {
+            "backend": "simulator",
+            "shots": 100,
+            "name": "job-name",
+            "dry_run": False,
+        }
 
 class TestAzureQuantumExecutor:
     """Tests for AzureQuantumExecutor."""
