@@ -26,7 +26,6 @@ from marqov.executors.ibm import IBMExecutor, IBMExecutorConfig
 from marqov.executors.local import LocalExecutor
 from marqov.simulation.config import SimulationConfig
 from marqov.simulation.executor import SimulationExecutor
-from marqov.executors.ionq import IonQExecutor, IonQExecutorConfig
 if TYPE_CHECKING:
     pass
 
@@ -106,7 +105,7 @@ class ExecutorFactory:
         if provider == "Azure Quantum":
             return cls._create_azure_executor(backend_slug, backend_config)
 
-        # IonQ Direct API (future)
+        # IonQ Direct API 
         if provider == "IonQ Direct":
             return cls._create_ionq_executor(backend_slug, backend_config)
 
@@ -116,8 +115,7 @@ class ExecutorFactory:
 
         raise ValueError(
             f"Unsupported provider: {provider}. "
-            f"Supported providers: AWS Braket, IBM Quantum, Azure Quantum, Quantum Brilliance, Local. "
-            f"Coming soon: IonQ Direct."
+            f"Supported providers: AWS Braket, IBM Quantum, Azure Quantum, Quantum Brilliance, Local, IonQ Direct. "
         )
 
     @classmethod
@@ -298,7 +296,7 @@ class ExecutorFactory:
             "Azure Quantum",
             "Quantum Brilliance",
             "Local",
-            "IonQ Direct",     # Coming soon
+            "IonQ Direct",    
         ]
 
     @classmethod
