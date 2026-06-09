@@ -42,7 +42,7 @@ class ExecutorFactory:
         - IBM Quantum: Heron r2, Eagle processors via Qiskit Runtime SamplerV2
         - Azure Quantum: Quantinuum, PASQAL, IonQ, Rigetti (Qiskit/Cirq support)
         - Local: QuantumFlow simulator (no cloud required)
-        - IonQ Direct API: Coming soon
+        - IonQ Direct API: IonQ devices and emulators (via IonQ Direct API)
 
     Example:
         >>> from marqov.executors.factory import ExecutorFactory
