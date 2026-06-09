@@ -25,6 +25,7 @@ from marqov.executors.factory import ExecutorFactory
 from marqov.executors.ibm import IBMExecutor, IBMExecutorConfig
 from marqov.executors.local import LocalExecutor
 from marqov.simulation.executor import SimulationExecutor
+from marqov.executors.ionq import IonQExecutor, IonQExecutorConfig
 
 __all__ = [
     "AzureQuantumExecutor",
