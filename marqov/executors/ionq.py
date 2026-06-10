@@ -25,7 +25,7 @@ from dataclasses import dataclass
 from functools import partial
 from typing import TYPE_CHECKING, Any
 from marqov.executors.base import BaseExecutor, ExecutionResult
-
+from marqov.circuits import Circuit
 if TYPE_CHECKING:
     from marqov.circuits import Circuit
 
@@ -122,7 +122,7 @@ class IonQExecutor(BaseExecutor):
             "shots": shots,
             "name": self.config.job_name,
             "dry_run": self.config.dry_run,
-            "input": circuit.to_ionq_qis(),   # ideal: lives in circuits.py
+            "input": circuit.to_ionq_qis(),  
         }
         if self.config.project_id:
             payload["project_id"] = self.config.project_id

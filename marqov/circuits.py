@@ -231,12 +231,28 @@ class Circuit:
         return qf.transpile(self._qf, output_format="cirq")
 
     def to_ionq_qis(self) -> dict:
-        """Convert to IonQ QIS circuit.
+        """Export circuit as IonQ Direct API v0.4 QIS input.
 
         Returns:
-            IonQ QIS circuit dictionary.
+            Dict with ``qubits``, ``gateset``, and ``circuit`` for job ``input``.
+
+        Raises:
+            NotImplementedError: If the circuit contains a non-canonical gate.
         """
-        return qf.transpile(self._qf, output_format="ionq_qis")
+        qis_gates: list[dict] = []
+        for gate in self.to_dict()["gates"]:
+            qis_gates.extend(
+                self._marqov_gate_to_ionq_qis(
+                    gate["gate"],
+                    gate["qubits"],
+                    gate.get("params", []),
+                )
+            )
+        return {
+            "qubits": max(self.num_qubits, 1),
+            "gateset": "qis",
+            "circuit": qis_gates,
+        }
     
     def to_pyquil(self):
         """Convert to Rigetti PyQuil program.
@@ -300,6 +316,76 @@ class Circuit:
         circuit = cls()
         circuit._qf = qf.braket_to_circuit(braket_circuit)
         return circuit
+
+    # Marqov gate name -> IonQ QIS gate name (single-qubit gates).
+    # Used by to_ionq_qis() for IonQ Direct API v0.4 export.
+    _IONQ_GATE_MAP: dict[str, str] = {
+        "H": "h",
+        "X": "x",
+        "Y": "y",
+        "Z": "z",
+        "S": "s",
+        "T": "t",
+        "Rx": "rx",
+        "Ry": "ry",
+        "Rz": "rz",
+    }
+
+    # Marqov two-qubit gate -> IonQ QIS gate (control + target).
+    _IONQ_CONTROL_TARGET_MAP: dict[str, str] = {
+        "CNot": "cnot",
+    }
+
+    # Marqov two-qubit gate -> IonQ QIS gate (targets list).
+    _IONQ_TARGETS_MAP: dict[str, str] = {
+        "Swap": "swap",
+    }
+
+    _IONQ_ROTATION_GATES: set[str] = {"Rx", "Ry", "Rz"}
+
+    @staticmethod
+    def _marqov_gate_to_ionq_qis(
+        gate_name: str,
+        qubits: list[int],
+        params: list[float],
+    ) -> list[dict]:
+        """Convert one Marqov gate to zero or more IonQ QIS gate dicts."""
+        if gate_name in Circuit._IONQ_GATE_MAP:
+            entry: dict = {"gate": Circuit._IONQ_GATE_MAP[gate_name], "target": qubits[0]}
+            if gate_name in Circuit._IONQ_ROTATION_GATES:
+                entry["rotation"] = params[0]
+            return [entry]
+
+        if gate_name in Circuit._IONQ_CONTROL_TARGET_MAP:
+            return [{
+                "gate": Circuit._IONQ_CONTROL_TARGET_MAP[gate_name],
+                "control": qubits[0],
+                "target": qubits[1],
+            }]
+
+        if gate_name in Circuit._IONQ_TARGETS_MAP:
+            return [{"gate": Circuit._IONQ_TARGETS_MAP[gate_name], "targets": qubits}]
+
+        if gate_name == "CZ":
+            # IonQ QIS has no native cz — decompose: CZ = H(target); CNOT; H(target)
+            target = qubits[1]
+            control = qubits[0]
+            return [
+                {"gate": "h", "target": target},
+                {"gate": "cnot", "control": control, "target": target},
+                {"gate": "h", "target": target},
+            ]
+
+        supported = sorted(
+            set(Circuit._IONQ_GATE_MAP)
+            | set(Circuit._IONQ_CONTROL_TARGET_MAP)
+            | set(Circuit._IONQ_TARGETS_MAP)
+            | {"CZ"}
+        )
+        raise NotImplementedError(
+            f"Gate {gate_name!r} is not supported for IonQ QIS export. "
+            f"Supported gates: {', '.join(supported)}"
+        )
 
     # Qiskit gate name -> Circuit fluent method mapping.
     # Used by from_qiskit() to convert decomposed Qiskit circuits.
