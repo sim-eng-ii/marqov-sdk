@@ -486,8 +486,8 @@ class TestIonQExecutor:
         )
         executor = IonQExecutor(config)
         job = {"results": {"probabilities": {"url": "/v0.4/jobs/x/results/probabilities"}}}
-        with patch.object(executor, "_api_get", return_value={"00": 0.5, "11": 0.5}):
-            counts = executor._fetch_counts(job, 100)
+        with patch.object(executor, "_api_get", return_value={"0": 0.5, "3": 0.5}):
+            counts = executor._fetch_counts(job, 100, num_qubits=2)
         assert counts == {"00": 50, "11": 50}
 
     def test_build_job_payload(self) -> None:
@@ -503,13 +503,17 @@ class TestIonQExecutor:
         payload = executor._build_job_payload(circuit, 100)
 
         assert payload["backend"] == "simulator"
+        assert payload["type"] == "ionq.circuit.v1"
+        assert payload["input"]["gateset"] == "qis"
+        assert payload["input"]["qubits"] == 2
+        assert payload["input"]["circuit"] == [
+            {"gate": "h", "target": 0},
+            {"gate": "cnot", "control": 0, "target": 1},
+        ]
         assert payload["shots"] == 100
-        assert payload["name"] == "job-name"
         assert payload["dry_run"] is False
-        assert payload["input"]["format"] == "openqasm"
-        assert "h" in payload["input"]["data"]
-        assert "cx" in payload["input"]["data"]
         assert payload["project_id"] == "project-id"
+        assert payload["name"] == "job-name"
 
 class TestAzureQuantumExecutor:
     """Tests for AzureQuantumExecutor."""
