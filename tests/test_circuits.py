@@ -446,6 +446,22 @@ class TestFromPennylane:
         assert np.isclose(np.abs(amps[3]) ** 2, 0.5, atol=0.01)
 
 
+class TestIonQQIS:
+    """Tests for IonQ QIS export."""
+
+    def test_bell_state_to_ionq_qis(self) -> None:
+        """bell_state exports to IonQ v0.4 QIS input."""
+        qis = bell_state().to_ionq_qis()
+        assert qis == {
+            "qubits": 2,
+            "gateset": "qis",
+            "circuit": [
+                {"gate": "h", "target": 0},
+                {"gate": "cnot", "control": 0, "target": 1},
+            ],
+        }
+
+
 class TestOpenQASM:
     """Tests for OpenQASM import and export."""
 
