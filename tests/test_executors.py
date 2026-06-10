@@ -417,8 +417,11 @@ class TestIonQExecutor:
         executor = IonQExecutor(config)
         assert executor._get_api_key() == "api-key"
     
-    def test_get_api_key_raises_error_if_no_api_key(self) -> None:
+    def test_get_api_key_raises_error_if_no_api_key(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """get_api_key raises ValueError if no API key is set."""
+        monkeypatch.delenv("IONQ_API_KEY", raising=False)
         config = IonQExecutorConfig(
             backend="simulator",
             project_id="project-id",
