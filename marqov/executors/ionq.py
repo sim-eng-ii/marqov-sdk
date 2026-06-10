@@ -116,16 +116,13 @@ class IonQExecutor(BaseExecutor):
             )
     
     def _build_job_payload(self, circuit: Circuit, shots: int) -> dict:
-        qasm = circuit.to_openqasm()   # needs marqov[openqasm]
         payload = {
-            "backend": self.config.backend,   # "simulator", "qpu.forte-1", etc.
+            "type": "ionq.circuit.v1",
+            "backend": self.config.backend,
             "shots": shots,
             "name": self.config.job_name,
             "dry_run": self.config.dry_run,
-            "input": {
-                "format": "openqasm",
-                "data": qasm,
-            },
+            "input": circuit.to_ionq_qis(),   # ideal: lives in circuits.py
         }
         if self.config.project_id:
             payload["project_id"] = self.config.project_id
@@ -139,7 +136,8 @@ class IonQExecutor(BaseExecutor):
         while True:
             job = self._api_get(f"/jobs/{job_id}")
             if job["status"] == "completed":
-                counts = self._fetch_counts(job, shots)
+                num_qubits = job.get("stats", {}).get("qubits", circuit.num_qubits)
+                counts = self._fetch_counts(job, shots, num_qubits)
                 return counts, job
             if job["status"] in ("failed", "canceled"):
                 raise RuntimeError(job.get("failure", job["status"]))
@@ -165,11 +163,20 @@ class IonQExecutor(BaseExecutor):
         response.raise_for_status()
         return response.json()
 
-    def _fetch_counts(self, job: dict, shots: int) -> dict:
+    def _normalize_outcome_key(self, key: str, num_qubits: int) -> str:
+        """Map IonQ integer outcome keys to Marqov bitstrings (e.g. '3' -> '11')."""
+        if len(key) == num_qubits and all(bit in "01" for bit in key):
+            return key
+        return format(int(key), f"0{num_qubits}b")
+
+    def _fetch_counts(self, job: dict, shots: int, num_qubits: int) -> dict:
         url = job["results"]["probabilities"]["url"]
-        # url may be relative — prepend https://api.ionq.co if needed
-        probs = self._api_get(url)  # or full URL GET
-        return {k: round(v * shots) for k, v in probs.items()}
+        probs = self._api_get(url)
+        counts: dict[str, int] = {}
+        for key, prob in probs.items():
+            bitstring = self._normalize_outcome_key(str(key), num_qubits)
+            counts[bitstring] = counts.get(bitstring, 0) + round(prob * shots)
+        return counts
 
     def _get_api_key(self) -> str:
         import os

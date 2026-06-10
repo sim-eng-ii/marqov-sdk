@@ -230,6 +230,14 @@ class Circuit:
         """
         return qf.transpile(self._qf, output_format="cirq")
 
+    def to_ionq_qis(self) -> dict:
+        """Convert to IonQ QIS circuit.
+
+        Returns:
+            IonQ QIS circuit dictionary.
+        """
+        return qf.transpile(self._qf, output_format="ionq_qis")
+    
     def to_pyquil(self):
         """Convert to Rigetti PyQuil program.
 
